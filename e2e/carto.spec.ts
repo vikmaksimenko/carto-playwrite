@@ -19,7 +19,28 @@ test('Test 1. Open map and validate info', async ({ page, baseURL }) => {
     });
 
     await test.step('Check the widget of data showed in the map', async () => {
-        // I was not able to find a propper way to req
+        // I was not able to find a propper way to request the test data 
+        // so I compare the actual data with the static values. 
+        // However, this test may be false-negative and potentially will require a lot of maintenance, 
+        // becase the data my change.
+        // Also, the numbers differ on different browser window size.
+        // Ideally, the data for comparison should be taken from the source service 
+        // and compared with actual one. 
+
+        const data = {
+            "Bridge": 370,
+            "Roadway": 330, 
+            "Culvert": 68,
+            "Tunnel": 6
+        };
+
+        await expect(page.getByText('All selected')).toBeVisible({timeout: 30 * 1000});
+
+        for(const key in data) {
+            const assetEl = page.getByText(key, { exact: true });
+            await expect(assetEl).toBeVisible();
+            await expect(assetEl.locator('xpath=./following-sibling::span')).toHaveText(data[key].toString());
+        }
     });
 });
 
