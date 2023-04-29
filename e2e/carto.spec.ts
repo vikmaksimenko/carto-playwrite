@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('Test 1. Open map and validate info', async ({ page, baseURL }) => {
+test('Test 1. Open map and validate info', async ({ page, baseURL, request }) => {
     await test.step(`Load the page ${baseURL}`, async () => {
         await page.goto('/');
     });
@@ -13,9 +13,55 @@ test('Test 1. Open map and validate info', async ({ page, baseURL }) => {
         await expect(page.locator('#deckgl-overlay')).toBeVisible();
     });
 
-    await test.step('Check the default information shown in the left panel is the "Introduction" with the appropriate content', async () => {
+    await test.step(`Check the default information shown in the left panel 
+        is the "Introduction" with the appropriate content`, async () => {
         await expect(page.getByRole('heading', { name: 'Introduction' })).toBeVisible();
-        // TODO: check that the content is "appropriate" ???
+
+        const response = await page.request.get('/data/information.json');
+        const body = await response.json();
+        const info = body['info'];
+        expect(info).toBeTruthy();
+
+        const sectionValidations = {
+            image: async (data) => {
+                // The image src is not checked, because it's changed on the server
+                const imageEl = page.getByRole('img', { name: data['alt'] });
+                await expect(imageEl).toBeVisible();
+                await expect(imageEl.locator('xpath=./following-sibling::span[contains(@class, "caption")]')).toHaveText(data['caption'].toString());
+            },
+            title: async (title) => {
+                await expect(page.getByRole('heading', { name: title })).toBeVisible();
+            },
+            userInfo: async (data) => {
+                await expect(page.getByRole('heading', { name: data['name'] })).toBeVisible();
+                await expect(page.getByRole('img', { name: data['name'] })).toBeVisible();
+                await expect(page.getByText(data['position'])).toBeVisible();
+            },
+            info: async (text) => {
+                await expect(page.getByText(text)).toBeVisible();
+            },
+            widget: async (data) => {
+                await expect(page.getByRole('button', { name: data['title'] })).toBeVisible();
+            },
+            nextHazard: async (data) => {
+                const next = page.locator(`//a[contains(@href, "${data['toRoute']}")]`);
+                await expect(next.filter({ has: page.getByRole('heading', { name: 'Next' }) })).toBeVisible();
+                await expect(next.filter({ has: page.getByRole('heading', { name: data['title'] }) })).toBeVisible();
+            },
+            footer: async () => {
+                // Leaving empty as it's not clear how to test footer
+            }
+        };
+
+        for (const infoIndex in info) {
+            // I do not validate sections order, because they are not in the same DOM element (footer is different)
+            const infoSection = info[infoIndex];
+            for (const widget in infoSection) {
+                const validation = sectionValidations[widget];
+                expect(validation).toBeTruthy();
+                await validation(infoSection[widget]);
+            }
+        }
     });
 
     await test.step('Check the widget of data showed in the map', async () => {
@@ -97,14 +143,14 @@ test('Test 3. Check that the "Facilities and structure" layer shows the correct 
         await expect(page.getByRole('region', { name: 'Facilities and Structures' })).toBeVisible();
 
         // TODO: and the data is correct 
-        
+
         // TODO: and properly showed in the map
     });
 
     // Then, you should zoom to the Honolulu island 
-    
+
     // check that the widget values are adapted to the data shown for that zoom level.
-    
+
     // filter the data by selecting one of the 3 available facilities in the widget 
     // check that all works as expected and that the map has applied the filter changes.
 
@@ -120,12 +166,12 @@ test('Test 4. Main page navigation', async ({ page, baseURL }) => {
 
     //  use the navigation bar to go to each entry going back to the start of the page between navigating to each section. 
     // You should check that the section's name is the proper one when navigating it.
-    
+
     // After that, the test should go to the first section again and then directly to the second one.
-    
+
     // After that, we should go to the "Explore Map" section 
     // check that, if we click the logo, we get back to the homepage. 
-    
+
     // Also, we would like to go back to the map 
     // check that, if we click the map's zoom, the number (zoom level) is appropriately updated.
 });
