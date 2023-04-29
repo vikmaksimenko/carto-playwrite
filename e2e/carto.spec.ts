@@ -63,7 +63,7 @@ test('Test 3. Check that the "Facilities and structure" layer shows the correct 
     await test.step('Disable all the "HDOT Assets" (to be able to check in the map that all is working properly)', async () => {
         await page.getByRole('button', { name: 'HDOT Assets', exact: true }).click();
         await page.getByRole('button', { name: 'Unselect all' }).click();
-        await page.getByText('Configuration').press('Escape');
+        await page.getByRole('button', { name: 'HDOT Assets', exact: true }).click();
     })
 
 
@@ -90,4 +90,21 @@ test('Test 3. Check that the "Facilities and structure" layer shows the correct 
     // simulate the "hover" over one of the facilities in the map 
     // check that the popup is shown with the proper information.
 
+});
+
+test('Test 4. Main page navigation', async ({ page, baseURL }) => {
+    await test.step(`Load the page ${baseURL}`, async () => {
+        await page.goto('/');
+    });
+
+    //  use the navigation bar to go to each entry going back to the start of the page between navigating to each section. 
+    // You should check that the section's name is the proper one when navigating it.
+    
+    // After that, the test should go to the first section again and then directly to the second one.
+    
+    // After that, we should go to the "Explore Map" section 
+    // check that, if we click the logo, we get back to the homepage. 
+    
+    // Also, we would like to go back to the map 
+    // check that, if we click the map's zoom, the number (zoom level) is appropriately updated.
 });
