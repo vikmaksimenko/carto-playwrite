@@ -1,0 +1,14 @@
+{
+  "name": "carto",
+  "version": "1.0.0",
+  "description": "Carto Automation Project",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:report": "npx playwright show-report"
+  },
+  "author": "Viktor Maksymenko <vikmaksimenko@hotmail.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.32.3"
+  }
+}
