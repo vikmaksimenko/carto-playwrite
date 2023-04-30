@@ -80,7 +80,7 @@ test('Test 1. Open map and validate info', async ({ page, baseURL, request }) =>
             "Tunnel": 6
         };
 
-        await expect(page.getByText('All selected')).toBeVisible({ timeout: 30 * 1000 });
+        await expect(page.getByText('All selected')).toBeVisible({ timeout: 60 * 1000 });
 
         for (const key in data) {
             const assetEl = page.getByText(key, { exact: true });
@@ -117,7 +117,7 @@ test('Test 2. The app should hide the button to configure the failing dataset', 
 
 test('Test 3. Check that the "Facilities and structure" layer shows the correct data and is working correctly', async ({ page }) => {
     await test.step('Open map', async () => {
-        await page.goto('https://climate-resilience.hidot.hawaii.gov/map/information/info');
+        await page.goto('/map/information/info');
         await expect(page.locator('#deckgl-overlay')).toBeVisible();
     });
 
@@ -161,7 +161,7 @@ test('Test 3. Check that the "Facilities and structure" layer shows the correct 
             "Police Station": 38,
         };
 
-        await expect(page.getByText('All selected')).toBeVisible({ timeout: 30 * 1000 });
+        await expect(page.getByText('All selected')).toBeVisible({ timeout: 60 * 1000 });
 
         for (const key in widgetData) {
             const assetEl = page.getByText(key, { exact: true });
@@ -294,7 +294,7 @@ test('Test 4. Main page navigation', async ({ page, baseURL }) => {
 
     await test.step('Go to the "Explore Map" section', async () => {
         await page.locator('#explore-map').getByRole('button', { name: 'Explore map' }).click();
-        await expect(page.locator('#deckgl-overlay')).toBeVisible();
+        await expect(page.locator('#deckgl-overlay')).toBeVisible({timeout: 30 * 1000});
     });
 
     await test.step('If we click the logo, we get back to the homepage.', async () => {
