@@ -75,14 +75,14 @@ test('Test 1. Open map and validate info', async ({ page, baseURL, request }) =>
 
         const data = {
             "Bridge": 370,
-            "Roadway": 330, 
+            "Roadway": 330,
             "Culvert": 68,
             "Tunnel": 6
         };
 
-        await expect(page.getByText('All selected')).toBeVisible({timeout: 30 * 1000});
+        await expect(page.getByText('All selected')).toBeVisible({ timeout: 30 * 1000 });
 
-        for(const key in data) {
+        for (const key in data) {
             const assetEl = page.getByText(key, { exact: true });
             await expect(assetEl).toBeVisible();
             await expect(assetEl.locator('xpath=./following-sibling::span')).toHaveText(data[key].toString());
@@ -121,42 +121,123 @@ test('Test 3. Check that the "Facilities and structure" layer shows the correct 
         await expect(page.locator('#deckgl-overlay')).toBeVisible();
     });
 
+    await test.step('Disable all the "HDOT Assets" (to be able to check in the map that all is working properly)', async () => {
+        // Selects become available before the data is loaded completely. 
+        // As result, the checkboxes we set might be reset by the app itself.
+        // Looks like a bug to me, map settings should be disabled while info loading
+
+        // The only way I found (beside the hardcoded wait) was to change steps order, 
+        // open the HDOT Assets menu first and wait for all checkboxes to become available. 
+        // However, it sould be great to have attribute or JS variable set when the data is loaded.
+        await page.getByRole('button', { name: 'HDOT Assets', exact: true }).click();
+
+        const menuEl = page.getByRole('menu').filter({has: page.getByRole('heading', { name: 'Configuration' })});
+        const checkboxes = await menuEl.getByRole('checkbox').all();
+        for(const checkbox of checkboxes) {
+            await expect(checkbox).toBeEnabled({timeout: 60 * 1000});
+        }
+
+        await page.getByRole('button', { name: 'Unselect all' }).click();
+        await menuEl.press('Escape');
+    })
+
     await test.step('Enable the "Facilities and structure" layer (available on "More Layers")', async () => {
         await page.getByRole('button', { name: 'More Layers' }).click();
         await page.getByRole('listitem').filter({ hasText: 'Facilities and Structure' }).getByRole('checkbox').check();
         await page.getByText('Configuration').press('Escape');
     });
 
-    await test.step('Disable all the "HDOT Assets" (to be able to check in the map that all is working properly)', async () => {
-        await page.getByRole('button', { name: 'HDOT Assets', exact: true }).click();
-        await page.getByRole('button', { name: 'Unselect all' }).click();
-        await page.getByRole('button', { name: 'HDOT Assets', exact: true }).click();
-    })
-
-
     await test.step('Open the Insights of Thematic indices', async () => {
         await page.getByRole('tab', { name: 'Thematic Indices' }).click();
         await page.getByRole('tab', { name: 'Insights' }).click();
-    })
-
-    await test.step('Check that the widget is visible and the data is correct and properly showed in the map', async () => {
-        await expect(page.getByRole('region', { name: 'Facilities and Structures' })).toBeVisible();
-
-        // TODO: and the data is correct 
-
-        // TODO: and properly showed in the map
     });
 
-    // Then, you should zoom to the Honolulu island 
+    await test.step('Check that the widget is visible and the data is correct', async () => {
+        await expect(page.getByRole('region', { name: 'Facilities and Structures' })).toBeVisible();
 
-    // check that the widget values are adapted to the data shown for that zoom level.
+        const widgetData = {
+            "Pre-School": 493,
+            "Fire Station": 101,
+            "Police Station": 38,
+        };
 
-    // filter the data by selecting one of the 3 available facilities in the widget 
-    // check that all works as expected and that the map has applied the filter changes.
+        await expect(page.getByText('All selected')).toBeVisible({ timeout: 30 * 1000 });
 
-    // simulate the "hover" over one of the facilities in the map 
-    // check that the popup is shown with the proper information.
+        for (const key in widgetData) {
+            const assetEl = page.getByText(key, { exact: true });
+            await expect(assetEl).toBeVisible();
+            await expect(assetEl.locator('xpath=./following-sibling::span')).toHaveText(widgetData[key].toString());
+        }
+    });
 
+    await test.step('Check that data properly showed in the map', async () => {
+        await expect(page.locator('#deckgl-wrapper')).toHaveScreenshot();
+    });
+
+    await test.step('Zoom to the Honolulu island',async () => {
+
+         // The starting coordinates for the mouse (approx. center of the Honolulu island)
+        let startX = 750;
+        let startY = 120;
+
+        // The ending coordinates are the meedle of the canvas element
+        const canvasBox = await page.$eval('#deckgl-overlay', (el) => el.getBoundingClientRect());
+        const endX = canvasBox.left + (canvasBox.width / 2);
+        const endY = canvasBox.top + (canvasBox.height / 2);
+
+        await page.mouse.move(startX, startY, {steps: 5});
+        await page.mouse.down();
+        await page.mouse.move(endX, endY, {steps: 5});
+        await page.mouse.up();    
+
+
+        // Zooming 
+        const increaseZoomEl = page.getByRole('button', { name: 'Increase zoom' });
+        await increaseZoomEl.click();
+        await increaseZoomEl.click();
+
+        // Fine-tuning island position 
+        startX = 750;
+        startY = 250;
+
+        await page.mouse.move(startX, startY, {steps: 5});
+        await page.mouse.down();
+        await page.mouse.move(endX, endY, {steps: 5});
+        await page.mouse.up();    
+
+        await expect(page.locator('#deckgl-wrapper')).toHaveScreenshot();
+    });
+
+    await test.step('Check that the widget values are adapted to the data shown for that zoom level.', async () => {
+        await expect(page.getByRole('region', { name: 'Facilities and Structures' })).toBeVisible();
+
+        const widgetData = {
+            "Pre-School": 331,
+            "Fire Station": 44,
+            "Police Station": 11,
+        };
+
+        for (const key in widgetData) {
+            await expect(page.locator(`xpath=//p[text() = "${key}"]/following-sibling::span[text()="${widgetData[key]}"]`)).toBeVisible();
+        }
+    });
+
+    await test.step('Filter the data by selecting one of the 3 available facilities in the widget', async () => {
+        await page.getByText('Police Station').click();
+        await expect(page.getByText('1 selected')).toBeVisible();
+    });
+
+    await test.step('Check that all works as expected and that the map has applied the filter changes.', async () => {
+        await expect(page.locator('#deckgl-wrapper')).toHaveScreenshot();
+    });
+
+    await test.step('Simulate the "hover" over one of the facilities in the map', async () => {
+        await page.mouse.move(720, 350);;
+    });
+
+    await test.step('Check that the popup is shown with the proper information.', async () => {
+        await expect(page.getByText('Name: Waianae Substation (Police Station)')).toBeVisible();
+    });
 });
 
 test('Test 4. Main page navigation', async ({ page, baseURL }) => {
