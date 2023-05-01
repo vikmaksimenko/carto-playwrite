@@ -6,4 +6,6 @@ export abstract class BaseComponent {
     constructor(page: Page) {
         this.page = page;
     }
+
+    abstract shouldBeVisible(): Promise<void>;
 }

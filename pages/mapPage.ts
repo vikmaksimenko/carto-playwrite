@@ -8,7 +8,13 @@ export class MapPage extends BasePage {
     readonly map: MapComponent = new MapComponent(this.page);
 
     async open() {
-        throw new Error('Method not implemented.');
+        await test.step('Open map', async () => {
+            await this.page.goto('/map/information/info');
+        });
+    }
+
+    async shouldBeVisible() {
+        await this.map.shouldBeVisible();
     }
 
     async goToHomePage() {

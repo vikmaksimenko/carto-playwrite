@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { BaseComponent } from '../components/baseComponent';
 
 export class MapSidebarComponent extends BaseComponent {
@@ -33,19 +33,33 @@ export class MapSidebarComponent extends BaseComponent {
         }
     };
 
+    async shouldBeVisible() {
+        throw new Error('Method not implemented.');
+    }
+
     async checkPanelSectionName(name: string) {
-        await expect(this.page.getByRole('heading', { name: name })).toBeVisible();
+        await test.step(`Panel name should be ${name}`, async () => {
+            await expect(this.page.getByRole('heading', { name: name })).toBeVisible();
+        });
     }
 
     async validateSectionInfo(info: object) {
-        for (const infoIndex in info) {
-            // I do not validate sections order, because they are not in the same DOM element (footer is different)
-            const infoSection = info[infoIndex];
-            for (const widget in infoSection) {
-                const validation = this.sectionValidations[widget];
-                expect(validation).toBeTruthy();
-                await validation(infoSection[widget]);
+        await test.step('Validate section info', async () => {
+            for (const infoIndex in info) {
+                // I do not validate sections order, because they are not in the same DOM element (footer is different)
+                const infoSection = info[infoIndex];
+                for (const widget in infoSection) {
+                    const validation = this.sectionValidations[widget];
+                    expect(validation).toBeTruthy();
+                    await validation(infoSection[widget]);
+                }
             }
-        }
+        });
+    }
+
+    async openTab(name: string) {
+        await test.step(`Open tab ${name}`, async () => {
+            await this.page.getByRole('tab', { name: name }).click();
+        });
     }
 }

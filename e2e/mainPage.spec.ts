@@ -18,7 +18,7 @@ test.describe('Main page tests', () => {
         await homePage.navigateToMap();
 
         const mapPage = new MapPage(page);
-        await mapPage.map.checkVisibility();
+        await mapPage.shouldBeVisible();
 
         await mapPage.sidebar.checkPanelSectionName('Introduction');
         const information = await new ApiUtils(page.request).getInformation();
@@ -71,13 +71,13 @@ test.describe('Main page tests', () => {
 
         await homePage.navigateToMap();
         const mapPage = new MapPage(page);
-        await mapPage.map.checkVisibility();
+        await mapPage.shouldBeVisible();
 
         await mapPage.goToHomePage();
-        await homePage.shouldBeOpened();
+        await homePage.shouldBeVisible();
 
         await homePage.navigateToMap();
-        await mapPage.map.checkVisibility();
+        await mapPage.shouldBeVisible();
 
         await mapPage.map.zoomIn(1);
     });

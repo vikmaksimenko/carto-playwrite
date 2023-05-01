@@ -9,7 +9,7 @@ export class HomePage extends BasePage {
         });
     }
 
-    async shouldBeOpened() {
+    async shouldBeVisible() {
         await test.step('Main page should be opened', async () => {
             await expect(this.page.locator('#explore-map')).toBeVisible();
         });
