@@ -1,6 +1,5 @@
 import { expect } from '@playwright/test';
 import { BaseComponent } from '../components/baseComponent';
-// import { MapSidebarWidgetComponent } from './mapSidebarWidgetComponent';
 
 export class MapSidebarComponent extends BaseComponent {
     private readonly sectionValidations = {
