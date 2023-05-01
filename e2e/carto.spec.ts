@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('Test 1. Open map and validate info', async ({ page, baseURL, request }) => {
+test('Test 1. Open map and validate info', async ({ page, baseURL }) => {
     await test.step(`Load the page ${baseURL}`, async () => {
         await page.goto('/');
     });
